@@ -1,77 +1,87 @@
-filename = "challenge.bin"
-{:ok, file} = File.open(filename, [:binary, :read])
+defmodule Main do
+  defp load_program() do
+    filename = "challenge.bin"
+    {:ok, file} = File.open(filename, [:binary, :read])
 
-file
-|> IO.binread(:all)
-|> :binary.bin_to_list()
-|> Enum.map(fn
-  0 ->
-    "halt()"
+    file
+    |> IO.binread(:all)
+    |> :binary.bin_to_list()
+  end
 
-  1 ->
-    "set(reg_a, b)"
+  def main() do
+    load_program()
+    |> Enum.map(fn
+      0 ->
+        "halt()"
 
-  2 ->
-    "push(a)"
+      1 ->
+        "set(reg_a, b)"
 
-  3 ->
-    "pop(a)"
+      2 ->
+        "push(a)"
 
-  4 ->
-    "eq(a, b, c)"
+      3 ->
+        "pop(a)"
 
-  5 ->
-    "gt(a, b, c)"
+      4 ->
+        "eq(a, b, c)"
 
-  6 ->
-    "jmp(a)"
+      5 ->
+        "gt(a, b, c)"
 
-  7 ->
-    "jt(a, b)"
+      6 ->
+        "jmp(a)"
 
-  8 ->
-    "jf(a, b)"
+      7 ->
+        "jt(a, b)"
 
-  9 ->
-    "add(a, b, c)"
+      8 ->
+        "jf(a, b)"
 
-  10 ->
-    "mult(a, b, c)"
+      9 ->
+        "add(a, b, c)"
 
-  11 ->
-    "mod(a, b, c)"
+      10 ->
+        "mult(a, b, c)"
 
-  12 ->
-    "and(a, b, c)"
+      11 ->
+        "mod(a, b, c)"
 
-  13 ->
-    "or(a, b, c)"
+      12 ->
+        "and(a, b, c)"
 
-  14 ->
-    "not(a, b)"
+      13 ->
+        "or(a, b, c)"
 
-  15 ->
-    "rmem(a, mem_b)"
+      14 ->
+        "not(a, b)"
 
-  16 ->
-    "wmem(mem_a, b)"
+      15 ->
+        "rmem(a, mem_b)"
 
-  17 ->
-    "call(a)"
+      16 ->
+        "wmem(mem_a, b)"
 
-  18 ->
-    "ret()"
+      17 ->
+        "call(a)"
 
-  19 ->
-    "out(a)"
+      18 ->
+        "ret()"
 
-  20 ->
-    "in(a)"
+      19 ->
+        "out(a)"
 
-  21 ->
-    "noop"
+      20 ->
+        "in(a)"
 
-  _ ->
-    "invalid opcode"
-end)
-|> Enum.map(&IO.puts(&1))
+      21 ->
+        "noop"
+
+      _ ->
+        "invalid opcode"
+    end)
+    |> Enum.map(&IO.puts(&1))
+  end
+end
+
+Main.main()
