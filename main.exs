@@ -1,4 +1,24 @@
 defmodule Main do
+  use GenServer
+
+  def start_link(state \\ []) do
+    GenServer.start_link(__MODULE__, state, name: __MODULE__)
+  end
+
+  def init(state) do
+    schedule()
+    {:ok, state}
+  end
+
+  defp schedule() do
+    send(self(), :loop)
+  end
+
+  def handle_info(:loop, state) do
+    schedule()
+    {:noreply, state}
+  end
+
   defp load_program() do
     filename = "challenge.bin"
     {:ok, file} = File.open(filename, [:binary, :read])
@@ -85,3 +105,4 @@ defmodule Main do
 end
 
 Main.main()
+Main.start_link()
