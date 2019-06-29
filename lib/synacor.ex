@@ -36,8 +36,7 @@ defmodule Synacor do
     end
   end
 
-  defp load_program() do
-    filename = "challenge.bin"
+  defp load_program(filename \\ "challenge.bin") do
     {:ok, file} = File.open(filename, [:binary, :read])
 
     file
@@ -45,8 +44,29 @@ defmodule Synacor do
     |> :binary.bin_to_list()
   end
 
-  def run_program(program) do
-    program
-    |> Enum.map(&lookup_instr(&1))
+  def run_program(program, pc \\ 0, memory \\ [], stack \\ []) do
+    instr = program |> Enum.at(pc) |> lookup_instr()
+
+    case instr do
+      :halt ->
+        :halt
+
+      :out ->
+        c = program |> Enum.at(pc + 1)
+        [c] |> List.to_string() |> IO.write()
+        {program, pc + 2, memory, stack}
+
+      :noop ->
+        nil
+    end
+    |> case do
+      :halt -> nil
+      {program, pc, memory, stack} -> run_program(program, pc, memory, stack)
+    end
+  end
+
+  def main() do
+    load_program()
+    |> run_program()
   end
 end
