@@ -8,8 +8,8 @@ defmodule Synacor do
     |> :binary.bin_to_list()
   end
 
-  def main() do
-    load_program()
+  def run_program(program) do
+    program
     |> Enum.map(fn
       0 ->
         "halt()"
@@ -75,11 +75,10 @@ defmodule Synacor do
         "in(a)"
 
       21 ->
-        "noop"
+        "noop()"
 
       _ ->
         "invalid opcode"
     end)
-    |> Enum.map(&IO.puts(&1))
   end
 end
