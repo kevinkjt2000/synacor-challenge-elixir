@@ -1,8 +1,13 @@
 defmodule SynacorTest do
   use ExUnit.Case
   doctest Synacor
+  import Synacor
 
   test "recognizes suggested opcodes" do
-    assert Synacor.run_program([21, 19, 0]) == ["noop()", "out(a)", "halt()"]
+    assert run_program([lookup_opcode(:out), ?h, lookup_opcode(:halt)]) == [
+             "out(a)",
+             "invalid opcode",
+             "halt()"
+           ]
   end
 end
