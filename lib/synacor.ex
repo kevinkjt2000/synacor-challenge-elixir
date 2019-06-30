@@ -92,6 +92,23 @@ defmodule Synacor do
 
         %{state | :pc => pc + 4, :memory => updated_memory}
 
+      :gt ->
+        a = Enum.at(memory, pc + 1)
+        b = Enum.at(memory, pc + 2)
+        c = Enum.at(memory, pc + 3)
+
+        updated_memory =
+          List.replace_at(
+            memory,
+            a,
+            case b > c do
+              true -> 1
+              false -> 0
+            end
+          )
+
+        %{state | :pc => pc + 4, :memory => updated_memory}
+
       :halt ->
         :halt
 

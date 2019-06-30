@@ -51,7 +51,7 @@ defmodule SynacorTest do
     assert %{} = run_program(program)
   end
 
-  test "numbers are comparable" do
+  test "numbers are eq comparable" do
     program = [
       lookup_opcode(:set),
       @reg0,
@@ -72,6 +72,34 @@ defmodule SynacorTest do
     assert %{memory: memory} = run_program(program)
     assert Enum.at(memory, 1000) == 0
     assert Enum.at(memory, 2000) == 1
+  end
+
+  test "numbers are gt comparable" do
+    program = [
+      lookup_opcode(:set),
+      @reg0,
+      42,
+      lookup_opcode(:set),
+      @reg1,
+      800,
+      lookup_opcode(:gt),
+      1000,
+      @reg0,
+      @reg1,
+      lookup_opcode(:gt),
+      2000,
+      @reg0,
+      @reg0,
+      lookup_opcode(:gt),
+      3000,
+      @reg1,
+      @reg0
+    ]
+
+    assert %{memory: memory} = run_program(program)
+    assert Enum.at(memory, 1000) == 0
+    assert Enum.at(memory, 2000) == 0
+    assert Enum.at(memory, 3000) == 1
   end
 
   test "empty program halts immediately" do
