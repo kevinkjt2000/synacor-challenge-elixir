@@ -13,9 +13,9 @@ defmodule SynacorTest do
   end
 
   test "can output characters to the screen" do
-    assert capture_io(fn ->
-             run_program([lookup_opcode(:out), ?h, lookup_opcode(:halt)])
-           end) == "h"
+    program = [lookup_opcode(:set), 0, ?h, lookup_opcode(:out), 0, lookup_opcode(:halt)]
+
+    assert capture_io(fn -> run_program(program) end) == "h"
   end
 
   test "noop does nothing" do
@@ -25,8 +25,8 @@ defmodule SynacorTest do
   end
 
   test "can push/pop from the stack" do
-    assert {_memory, _pc, stack, registers} =
-             run_program([lookup_opcode(:push), 42, lookup_opcode(:pop), 0, lookup_opcode(:halt)])
+    program = [lookup_opcode(:push), 42, lookup_opcode(:pop), 0, lookup_opcode(:halt)]
+    assert {_memory, _pc, stack, registers} = run_program(program)
 
     assert stack == []
     assert registers[0] == 42

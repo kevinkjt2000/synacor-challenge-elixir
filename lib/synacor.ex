@@ -60,7 +60,8 @@ defmodule Synacor do
         {memory, pc + 1, stack, registers}
 
       :out ->
-        c = memory |> Enum.at(pc + 1)
+        register = memory |> Enum.at(pc + 1)
+        c = registers |> Map.get(register)
         [c] |> List.to_string() |> IO.write()
         {memory, pc + 2, stack, registers}
 
