@@ -114,6 +114,12 @@ defmodule Synacor do
         val = Enum.at(memory, pc + 1)
         %{state | :pc => pc + 2, :stack => [val | stack]}
 
+      :ret ->
+        case stack do
+          [] -> :halt
+          [val | popped_stack] -> %{state | :pc => val, :stack => popped_stack}
+        end
+
       :set ->
         address = Enum.at(memory, pc + 1)
         val = Enum.at(memory, pc + 2)

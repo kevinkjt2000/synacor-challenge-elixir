@@ -16,6 +16,21 @@ defmodule SynacorTest do
   # @reg6 32774
   # @reg7 32775
 
+  test "ret jumps to top of stack" do
+    program = [
+      lookup_opcode(:push),
+      1000,
+      lookup_opcode(:ret)
+    ]
+
+    assert %{pc: 1000} = run_program(program)
+  end
+
+  test "ret halts when stack is empty" do
+    program = [lookup_opcode(:ret)]
+    assert %{} = run_program(program)
+  end
+
   test "numbers are comparable" do
     program = [
       lookup_opcode(:set),
