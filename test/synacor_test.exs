@@ -11,6 +11,12 @@ defmodule SynacorTest do
            end) == "h"
   end
 
+  test "noop does nothing" do
+    program = [lookup_opcode(:noop), lookup_opcode(:noop), lookup_opcode(:halt)]
+    assert {_memory, pc, _stack, _registers} = run_program(program)
+    assert pc == 2
+  end
+
   test "can push/pop from the stack" do
     assert {_memory, _pc, stack, registers} =
              run_program([lookup_opcode(:push), 42, lookup_opcode(:pop), 0, lookup_opcode(:halt)])
