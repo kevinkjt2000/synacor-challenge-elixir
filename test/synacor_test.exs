@@ -95,10 +95,11 @@ defmodule SynacorTest do
       assert Enum.at(memory, @reg1) == 800
     end
 
-    test "wmem writes to memory" do
-      program = [lookup_opcode(:wmem), 1000, 42]
+    test "wmem/rmem memory" do
+      program = [lookup_opcode(:wmem), 1000, 42, lookup_opcode(:rmem), @reg0, 1000]
       assert %{memory: memory} = run_program(program)
       assert Enum.at(memory, 1000) == 42
+      assert Enum.at(memory, @reg0) == 42
     end
   end
 
