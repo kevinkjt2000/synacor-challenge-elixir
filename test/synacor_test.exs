@@ -16,6 +16,29 @@ defmodule SynacorTest do
   # @reg6 32774
   # @reg7 32775
 
+  test "numbers are comparable" do
+    program = [
+      lookup_opcode(:set),
+      @reg0,
+      42,
+      lookup_opcode(:set),
+      @reg1,
+      800,
+      lookup_opcode(:eq),
+      1000,
+      @reg0,
+      @reg1,
+      lookup_opcode(:eq),
+      2000,
+      @reg0,
+      @reg0
+    ]
+
+    assert %{memory: memory} = run_program(program)
+    assert Enum.at(memory, 1000) == 0
+    assert Enum.at(memory, 2000) == 1
+  end
+
   test "empty program halts immediately" do
     assert %{} = run_program([])
   end
