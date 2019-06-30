@@ -26,6 +26,15 @@ defmodule SynacorTest do
   # @reg6 32774
   # @reg7 32775
 
+  test "example from hints section of the instructions" do
+    program = [9, 32768, 32769, 4, 19, 32768]
+
+    assert capture_io(fn ->
+             assert %{memory: memory} = run_program(program)
+             assert Enum.at(memory, @reg0) == 4
+           end) == <<4>>
+  end
+
   describe "modulo math" do
     test "32758 + 15 is 5" do
       program = [lookup_opcode(:add), @reg0, 32758, 15]
