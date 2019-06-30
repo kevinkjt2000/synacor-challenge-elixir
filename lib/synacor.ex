@@ -162,7 +162,7 @@ defmodule Synacor do
         %{state | :pc => pc + 2, :stack => popped_stack, :memory => updated_memory}
 
       :push ->
-        val = Enum.at(memory, pc + 1)
+        val = get_mem_or_reg(memory, pc + 1)
         %{state | :pc => pc + 2, :stack => [val | stack]}
 
       :ret ->
@@ -173,7 +173,7 @@ defmodule Synacor do
 
       :set ->
         address = Enum.at(memory, pc + 1)
-        val = Enum.at(memory, pc + 2)
+        val = get_mem_or_reg(memory, pc + 2)
         updated_memory = List.replace_at(memory, address, val)
         %{state | :pc => pc + 3, :memory => updated_memory}
     end
