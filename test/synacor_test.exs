@@ -26,11 +26,17 @@ defmodule SynacorTest do
   # @reg6 32774
   # @reg7 32775
 
-  describe "math" do
-    test "not 4 is 32763" do
-      program = [lookup_opcode(:not), @reg0, 4]
+  describe "bit math" do
+    test "not 000000000000100 is 111111111111011" do
+      program = [lookup_opcode(:not), @reg0, 0b100]
       assert %{memory: memory} = run_program(program)
-      assert Enum.at(memory, @reg0) == 32763
+      assert Enum.at(memory, @reg0) == 0b111111111111011
+    end
+
+    test "1010 or 1100 is 1110" do
+      program = [lookup_opcode(:or), @reg0, 0b1010, 0b1100]
+      assert %{memory: memory} = run_program(program)
+      assert Enum.at(memory, @reg0) == 0b1110
     end
   end
 

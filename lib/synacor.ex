@@ -163,6 +163,14 @@ defmodule Synacor do
         updated_memory = List.replace_at(memory, a, not_b)
         %{state | :pc => pc + 3, memory: updated_memory}
 
+      :or ->
+        a = Enum.at(memory, pc + 1)
+        b = get_mem_or_reg(memory, pc + 2)
+        c = get_mem_or_reg(memory, pc + 3)
+        <<b_or_c::15>> = <<Bitwise.bor(b, c)::15>>
+        updated_memory = List.replace_at(memory, a, b_or_c)
+        %{state | :pc => pc + 4, memory: updated_memory}
+
       :out ->
         c = get_mem_or_reg(memory, pc + 1)
 
