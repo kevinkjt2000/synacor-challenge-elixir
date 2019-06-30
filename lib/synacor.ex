@@ -44,24 +44,42 @@ defmodule Synacor do
     |> :binary.bin_to_list()
   end
 
-  def run_program(program, pc \\ 0, memory \\ [], stack \\ []) do
-    instr = program |> Enum.at(pc) |> lookup_instr()
+  def run_program(
+        memory,
+        pc \\ 0,
+        stack \\ [],
+        registers \\ 0..8 |> Map.new(fn reg -> {reg, 0} end)
+      ) do
+    instr = memory |> Enum.at(pc) |> lookup_instr()
 
     case instr do
       :halt ->
         :halt
 
-      :out ->
-        c = program |> Enum.at(pc + 1)
-        [c] |> List.to_string() |> IO.write()
-        {program, pc + 2, memory, stack}
-
       :noop ->
-        nil
+        {memory, pc + 1, stack, registers}
+
+      :out ->
+        c = memory |> Enum.at(pc + 1)
+        [c] |> List.to_string() |> IO.write()
+        {memory, pc + 2, stack, registers}
+
+      :pop ->
+        register = memory |> Enum.at(pc + 1)
+        [val | popped_stack] = stack
+        new_registers = Map.update!(registers, register, fn _ -> val end)
+        {memory, pc + 2, popped_stack, new_registers}
+
+      :push ->
+        val = memory |> Enum.at(pc + 1)
+        {memory, pc + 2, [val | stack], registers}
     end
     |> case do
-      :halt -> nil
-      {program, pc, memory, stack} -> run_program(program, pc, memory, stack)
+      :halt ->
+        {memory, pc, stack, registers}
+
+      {memory, pc, stack, registers} ->
+        run_program(memory, pc, stack, registers)
     end
   end
 
