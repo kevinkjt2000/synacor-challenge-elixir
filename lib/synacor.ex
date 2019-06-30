@@ -44,12 +44,30 @@ defmodule Synacor do
     |> :binary.bin_to_list()
   end
 
-  def run_program(
-        memory,
-        pc \\ 0,
-        stack \\ [],
-        registers \\ 0..8 |> Map.new(fn reg -> {reg, 0} end)
-      ) do
+  def run_program(program) do
+    zeroed_memory = List.duplicate(0, :math.pow(2, 16) |> trunc())
+
+    initial_memory =
+      program
+      |> Enum.with_index()
+      |> List.foldl(zeroed_memory, fn {word, index}, acc ->
+        List.replace_at(acc, index, word)
+      end)
+
+    runner(%{
+      memory: initial_memory,
+      pc: 0,
+      stack: []
+    })
+  end
+
+  defp runner(
+         %{
+           memory: memory,
+           pc: pc,
+           stack: stack
+         } = state
+       ) do
     instr = memory |> Enum.at(pc) |> lookup_instr()
 
     case instr do
@@ -57,36 +75,40 @@ defmodule Synacor do
         :halt
 
       :noop ->
-        {memory, pc + 1, stack, registers}
+        %{state | :pc => pc + 1}
 
       :out ->
-        register = memory |> Enum.at(pc + 1)
-        c = registers |> Map.get(register)
+        c =
+          case Enum.at(memory, pc + 1) do
+            val when val > 32767 -> Enum.at(memory, val)
+            val -> val
+          end
+
         [c] |> List.to_string() |> IO.write()
-        {memory, pc + 2, stack, registers}
+        %{state | :pc => pc + 2}
 
       :pop ->
-        register = memory |> Enum.at(pc + 1)
+        address = Enum.at(memory, pc + 1)
         [val | popped_stack] = stack
-        new_registers = Map.update!(registers, register, fn _ -> val end)
-        {memory, pc + 2, popped_stack, new_registers}
+        updated_memory = List.replace_at(memory, address, val)
+        %{state | :pc => pc + 2, :stack => popped_stack, :memory => updated_memory}
 
       :push ->
-        val = memory |> Enum.at(pc + 1)
-        {memory, pc + 2, [val | stack], registers}
+        val = Enum.at(memory, pc + 1)
+        %{state | :pc => pc + 2, :stack => [val | stack]}
 
       :set ->
-        register = memory |> Enum.at(pc + 1)
-        val = memory |> Enum.at(pc + 2)
-        new_registers = Map.update!(registers, register, fn _ -> val end)
-        {memory, pc + 3, stack, new_registers}
+        address = Enum.at(memory, pc + 1)
+        val = Enum.at(memory, pc + 2)
+        updated_memory = List.replace_at(memory, address, val)
+        %{state | :pc => pc + 3, :memory => updated_memory}
     end
     |> case do
       :halt ->
-        {memory, pc, stack, registers}
+        state
 
-      {memory, pc, stack, registers} ->
-        run_program(memory, pc, stack, registers)
+      new_state ->
+        runner(new_state)
     end
   end
 

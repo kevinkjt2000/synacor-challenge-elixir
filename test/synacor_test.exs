@@ -5,30 +5,53 @@ defmodule SynacorTest do
   doctest Synacor
   import Synacor
 
+  @moduletag timeout: 1000
+
+  @reg0 32768
+  @reg1 32769
+  # @reg2 32770
+  # @reg3 32771
+  # @reg4 32772
+  # @reg5 32773
+  # @reg6 32774
+  # @reg7 32775
+
+  test "empty program halts immediately" do
+    assert %{} = run_program([])
+  end
+
   test "registers are updated after set instructions" do
-    program = [lookup_opcode(:set), 0, 42, lookup_opcode(:set), 1, 800, lookup_opcode(:halt)]
-    assert {_memory, _pc, _stack, registers} = run_program(program)
-    assert registers[0] == 42
-    assert registers[1] == 800
+    program = [
+      lookup_opcode(:set),
+      @reg0,
+      42,
+      lookup_opcode(:set),
+      @reg1,
+      800
+    ]
+
+    assert %{memory: memory} = run_program(program)
+    assert Enum.at(memory, @reg0) == 42
+    assert Enum.at(memory, @reg1) == 800
   end
 
   test "can output characters to the screen" do
-    program = [lookup_opcode(:set), 0, ?h, lookup_opcode(:out), 0, lookup_opcode(:halt)]
+    program = [lookup_opcode(:set), @reg0, ?h, lookup_opcode(:out), @reg0]
 
     assert capture_io(fn -> run_program(program) end) == "h"
   end
 
   test "noop does nothing" do
-    program = [lookup_opcode(:noop), lookup_opcode(:noop), lookup_opcode(:halt)]
-    assert {_memory, pc, _stack, _registers} = run_program(program)
+    program = [lookup_opcode(:noop), lookup_opcode(:noop)]
+    assert %{pc: pc} = run_program(program)
     assert pc == 2
   end
 
   test "can push/pop from the stack" do
-    program = [lookup_opcode(:push), 42, lookup_opcode(:pop), 0, lookup_opcode(:halt)]
-    assert {_memory, _pc, stack, registers} = run_program(program)
+    program = [lookup_opcode(:push), 42, lookup_opcode(:pop), @reg0, lookup_opcode(:halt)]
+    assert %{memory: memory, stack: stack} = run_program(program)
 
     assert stack == []
-    assert registers[0] == 42
+    assert Enum.at(memory, @reg0) == 42
   end
 end
