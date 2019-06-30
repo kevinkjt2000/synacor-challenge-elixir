@@ -118,6 +118,18 @@ defmodule Synacor do
         updated_memory = List.replace_at(memory, a, char)
         %{state | :pc => pc + 2, :memory => updated_memory}
 
+      :jf ->
+        a = get_mem_or_reg(memory, pc + 1)
+        b = get_mem_or_reg(memory, pc + 2)
+
+        updated_pc =
+          case a do
+            0 -> b
+            _ -> pc + 3
+          end
+
+        %{state | :pc => updated_pc}
+
       :jmp ->
         a = get_mem_or_reg(memory, pc + 1)
         %{state | :pc => a}

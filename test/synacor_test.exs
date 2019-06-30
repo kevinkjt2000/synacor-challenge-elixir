@@ -105,6 +105,13 @@ defmodule SynacorTest do
       assert %{pc: 1000} = run_program(jump_prog)
       assert %{pc: 6} = run_program(no_jump_prog)
     end
+
+    test "jf sets pc appropriately" do
+      jump_prog = [lookup_opcode(:set), @reg0, 0, lookup_opcode(:jf), @reg0, 1000]
+      no_jump_prog = [lookup_opcode(:set), @reg0, 5, lookup_opcode(:jf), @reg0, 1000]
+      assert %{pc: 1000} = run_program(jump_prog)
+      assert %{pc: 6} = run_program(no_jump_prog)
+    end
   end
 
   describe "i/o" do
