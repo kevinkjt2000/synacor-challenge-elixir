@@ -92,7 +92,15 @@ defmodule SynacorTest do
     assert Enum.at(memory, @reg1) == 800
   end
 
-  describe "io" do
+  describe "jumps" do
+    test "jmp sets pc appropriately" do
+      program = [lookup_opcode(:jmp), 1000]
+
+      assert %{pc: 1000} = run_program(program)
+    end
+  end
+
+  describe "i/o" do
     test "in instruction can read from user" do
       program = [
         lookup_opcode(:in),

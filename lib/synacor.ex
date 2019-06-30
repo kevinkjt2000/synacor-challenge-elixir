@@ -118,6 +118,10 @@ defmodule Synacor do
         updated_memory = List.replace_at(memory, a, char)
         %{state | :pc => pc + 2, :memory => updated_memory}
 
+      :jmp ->
+        a = Enum.at(memory, pc + 1)
+        %{state | :pc => a}
+
       :noop ->
         %{state | :pc => pc + 1}
 
