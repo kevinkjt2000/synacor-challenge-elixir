@@ -1,4 +1,6 @@
 defmodule Synacor do
+  use Bitwise
+
   @instructions %{
     halt: 0,
     set: 1,
@@ -153,6 +155,13 @@ defmodule Synacor do
 
       :noop ->
         %{state | :pc => pc + 1}
+
+      :not ->
+        a = Enum.at(memory, pc + 1)
+        b = get_mem_or_reg(memory, pc + 2)
+        <<not_b::15>> = <<Bitwise.bnot(b)::15>>
+        updated_memory = List.replace_at(memory, a, not_b)
+        %{state | :pc => pc + 3, memory: updated_memory}
 
       :out ->
         c = get_mem_or_reg(memory, pc + 1)

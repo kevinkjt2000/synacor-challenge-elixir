@@ -26,6 +26,14 @@ defmodule SynacorTest do
   # @reg6 32774
   # @reg7 32775
 
+  describe "math" do
+    test "not 4 is 32763" do
+      program = [lookup_opcode(:not), @reg0, 4]
+      assert %{memory: memory} = run_program(program)
+      assert Enum.at(memory, @reg0) == 32763
+    end
+  end
+
   describe "comparisons" do
     test "numbers are eq comparable" do
       program = [
