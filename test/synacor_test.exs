@@ -26,31 +26,6 @@ defmodule SynacorTest do
   # @reg6 32774
   # @reg7 32775
 
-  test "in instruction can read from user" do
-    program = [
-      lookup_opcode(:in),
-      1000
-    ]
-
-    assert %{memory: memory} = run_program(program, MockIO)
-    assert Enum.at(memory, 1000) == ?m
-  end
-
-  test "ret jumps to top of stack" do
-    program = [
-      lookup_opcode(:push),
-      1000,
-      lookup_opcode(:ret)
-    ]
-
-    assert %{pc: 1000} = run_program(program)
-  end
-
-  test "ret halts when stack is empty" do
-    program = [lookup_opcode(:ret)]
-    assert %{} = run_program(program)
-  end
-
   test "numbers are eq comparable" do
     program = [
       lookup_opcode(:set),
@@ -102,10 +77,6 @@ defmodule SynacorTest do
     assert Enum.at(memory, 3000) == 1
   end
 
-  test "empty program halts immediately" do
-    assert %{} = run_program([])
-  end
-
   test "registers are updated after set instructions" do
     program = [
       lookup_opcode(:set),
@@ -121,23 +92,58 @@ defmodule SynacorTest do
     assert Enum.at(memory, @reg1) == 800
   end
 
-  test "can output characters to the screen" do
-    program = [lookup_opcode(:set), @reg0, ?h, lookup_opcode(:out), @reg0]
+  describe "io" do
+    test "in instruction can read from user" do
+      program = [
+        lookup_opcode(:in),
+        1000
+      ]
 
-    assert capture_io(fn -> run_program(program) end) == "h"
+      assert %{memory: memory} = run_program(program, MockIO)
+      assert Enum.at(memory, 1000) == ?m
+    end
+
+    test "can output characters to the screen" do
+      program = [lookup_opcode(:set), @reg0, ?h, lookup_opcode(:out), @reg0]
+
+      assert capture_io(fn -> run_program(program) end) == "h"
+    end
   end
 
-  test "noop does nothing" do
-    program = [lookup_opcode(:noop), lookup_opcode(:noop)]
-    assert %{pc: pc} = run_program(program)
-    assert pc == 2
+  describe "stack manipulation" do
+    test "ret halts when stack is empty" do
+      program = [lookup_opcode(:ret)]
+      assert %{} = run_program(program)
+    end
+
+    test "ret jumps to top of stack" do
+      program = [
+        lookup_opcode(:push),
+        1000,
+        lookup_opcode(:ret)
+      ]
+
+      assert %{pc: 1000} = run_program(program)
+    end
+
+    test "can push/pop from the stack" do
+      program = [lookup_opcode(:push), 42, lookup_opcode(:pop), @reg0]
+      assert %{memory: memory, stack: stack} = run_program(program)
+
+      assert stack == []
+      assert Enum.at(memory, @reg0) == 42
+    end
   end
 
-  test "can push/pop from the stack" do
-    program = [lookup_opcode(:push), 42, lookup_opcode(:pop), @reg0, lookup_opcode(:halt)]
-    assert %{memory: memory, stack: stack} = run_program(program)
+  describe "idle programs" do
+    test "noop does nothing" do
+      program = [lookup_opcode(:noop), lookup_opcode(:noop)]
+      assert %{pc: pc} = run_program(program)
+      assert pc == 2
+    end
 
-    assert stack == []
-    assert Enum.at(memory, @reg0) == 42
+    test "empty program halts immediately" do
+      assert %{} = run_program([])
+    end
   end
 end
