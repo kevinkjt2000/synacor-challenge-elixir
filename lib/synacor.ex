@@ -76,9 +76,9 @@ defmodule Synacor do
 
     case instr do
       :eq ->
-        a = Enum.at(memory, pc + 1)
-        b = Enum.at(memory, pc + 2)
-        c = Enum.at(memory, pc + 3)
+        a = get_mem_or_reg(memory, pc + 1)
+        b = get_mem_or_reg(memory, pc + 2)
+        c = get_mem_or_reg(memory, pc + 3)
 
         updated_memory =
           List.replace_at(
@@ -93,9 +93,9 @@ defmodule Synacor do
         %{state | :pc => pc + 4, :memory => updated_memory}
 
       :gt ->
-        a = Enum.at(memory, pc + 1)
-        b = Enum.at(memory, pc + 2)
-        c = Enum.at(memory, pc + 3)
+        a = get_mem_or_reg(memory, pc + 1)
+        b = get_mem_or_reg(memory, pc + 2)
+        c = get_mem_or_reg(memory, pc + 3)
 
         updated_memory =
           List.replace_at(
@@ -119,18 +119,26 @@ defmodule Synacor do
         %{state | :pc => pc + 2, :memory => updated_memory}
 
       :jmp ->
-        a = Enum.at(memory, pc + 1)
+        a = get_mem_or_reg(memory, pc + 1)
         %{state | :pc => a}
+
+      :jt ->
+        a = get_mem_or_reg(memory, pc + 1)
+        b = get_mem_or_reg(memory, pc + 2)
+
+        updated_pc =
+          case a do
+            0 -> pc + 3
+            _ -> b
+          end
+
+        %{state | :pc => updated_pc}
 
       :noop ->
         %{state | :pc => pc + 1}
 
       :out ->
-        c =
-          case Enum.at(memory, pc + 1) do
-            val when val > 32767 -> Enum.at(memory, val)
-            val -> val
-          end
+        c = get_mem_or_reg(memory, pc + 1)
 
         [c] |> List.to_string() |> io.write()
         %{state | :pc => pc + 2}
@@ -163,6 +171,14 @@ defmodule Synacor do
 
       new_state ->
         runner(new_state, io)
+    end
+  end
+
+  defp get_mem_or_reg(memory, address) do
+    Enum.at(memory, address)
+    |> case do
+      val when val > 32767 -> Enum.at(memory, val)
+      val -> val
     end
   end
 
