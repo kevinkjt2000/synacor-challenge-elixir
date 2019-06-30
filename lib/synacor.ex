@@ -44,21 +44,24 @@ defmodule Synacor do
     |> :binary.bin_to_list()
   end
 
-  def run_program(program) do
+  def run_program(program, io \\ IO) do
     zeroed_memory = List.duplicate(0, :math.pow(2, 16) |> trunc())
 
     initial_memory =
       program
       |> Enum.with_index()
-      |> List.foldl(zeroed_memory, fn {word, index}, acc ->
-        List.replace_at(acc, index, word)
+      |> List.foldl(zeroed_memory, fn {word, index}, memory_acc ->
+        List.replace_at(memory_acc, index, word)
       end)
 
-    runner(%{
-      memory: initial_memory,
-      pc: 0,
-      stack: []
-    })
+    runner(
+      %{
+        memory: initial_memory,
+        pc: 0,
+        stack: []
+      },
+      io
+    )
   end
 
   defp runner(
@@ -66,7 +69,8 @@ defmodule Synacor do
            memory: memory,
            pc: pc,
            stack: stack
-         } = state
+         } = state,
+         io
        ) do
     instr = memory |> Enum.at(pc) |> lookup_instr()
 
@@ -91,6 +95,12 @@ defmodule Synacor do
       :halt ->
         :halt
 
+      :in ->
+        char = io.gets("") |> String.to_charlist() |> Enum.at(0)
+        a = Enum.at(memory, pc + 1)
+        updated_memory = List.replace_at(memory, a, char)
+        %{state | :pc => pc + 2, :memory => updated_memory}
+
       :noop ->
         %{state | :pc => pc + 1}
 
@@ -101,7 +111,7 @@ defmodule Synacor do
             val -> val
           end
 
-        [c] |> List.to_string() |> IO.write()
+        [c] |> List.to_string() |> io.write()
         %{state | :pc => pc + 2}
 
       :pop ->
@@ -131,7 +141,7 @@ defmodule Synacor do
         state
 
       new_state ->
-        runner(new_state)
+        runner(new_state, io)
     end
   end
 

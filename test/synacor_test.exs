@@ -1,3 +1,13 @@
+defmodule MockIO do
+  def gets(_prompt) do
+    "m\n"
+  end
+
+  def write(mesg) do
+    IO.write(mesg)
+  end
+end
+
 defmodule SynacorTest do
   use ExUnit.Case
   import ExUnit.CaptureIO
@@ -15,6 +25,16 @@ defmodule SynacorTest do
   # @reg5 32773
   # @reg6 32774
   # @reg7 32775
+
+  test "in instruction can read from user" do
+    program = [
+      lookup_opcode(:in),
+      1000
+    ]
+
+    assert %{memory: memory} = run_program(program, MockIO)
+    assert Enum.at(memory, 1000) == ?m
+  end
 
   test "ret jumps to top of stack" do
     program = [
