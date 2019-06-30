@@ -38,6 +38,12 @@ defmodule SynacorTest do
       assert %{memory: memory} = run_program(program)
       assert Enum.at(memory, @reg0) == 0b1110
     end
+
+    test "1010 and 1100 is 1000" do
+      program = [lookup_opcode(:and), @reg0, 0b1010, 0b1100]
+      assert %{memory: memory} = run_program(program)
+      assert Enum.at(memory, @reg0) == 0b1000
+    end
   end
 
   describe "comparisons" do
