@@ -26,55 +26,57 @@ defmodule SynacorTest do
   # @reg6 32774
   # @reg7 32775
 
-  test "numbers are eq comparable" do
-    program = [
-      lookup_opcode(:set),
-      @reg0,
-      42,
-      lookup_opcode(:set),
-      @reg1,
-      800,
-      lookup_opcode(:eq),
-      1000,
-      @reg0,
-      @reg1,
-      lookup_opcode(:eq),
-      2000,
-      @reg0,
-      @reg0
-    ]
+  describe "comparisons" do
+    test "numbers are eq comparable" do
+      program = [
+        lookup_opcode(:set),
+        @reg0,
+        42,
+        lookup_opcode(:set),
+        @reg1,
+        800,
+        lookup_opcode(:eq),
+        1000,
+        @reg0,
+        @reg1,
+        lookup_opcode(:eq),
+        2000,
+        @reg0,
+        @reg0
+      ]
 
-    assert %{memory: memory} = run_program(program)
-    assert Enum.at(memory, 1000) == 0
-    assert Enum.at(memory, 2000) == 1
-  end
+      assert %{memory: memory} = run_program(program)
+      assert Enum.at(memory, 1000) == 0
+      assert Enum.at(memory, 2000) == 1
+    end
 
-  test "numbers are gt comparable" do
-    program = [
-      lookup_opcode(:set),
-      @reg0,
-      42,
-      lookup_opcode(:set),
-      @reg1,
-      800,
-      lookup_opcode(:gt),
-      1000,
-      @reg0,
-      @reg1,
-      lookup_opcode(:gt),
-      2000,
-      @reg0,
-      @reg0,
-      lookup_opcode(:gt),
-      3000,
-      @reg1,
-      @reg0
-    ]
+    test "numbers are gt comparable" do
+      program = [
+        lookup_opcode(:set),
+        @reg0,
+        42,
+        lookup_opcode(:set),
+        @reg1,
+        800,
+        lookup_opcode(:gt),
+        1000,
+        @reg0,
+        @reg1,
+        lookup_opcode(:gt),
+        2000,
+        @reg0,
+        @reg0,
+        lookup_opcode(:gt),
+        3000,
+        @reg1,
+        @reg0
+      ]
 
-    assert %{memory: memory} = run_program(program)
-    assert Enum.at(memory, 1000) == 0
-    assert Enum.at(memory, 2000) == 0
-    assert Enum.at(memory, 3000) == 1
+      assert %{memory: memory} = run_program(program)
+      assert Enum.at(memory, 1000) == 0
+      assert Enum.at(memory, 2000) == 0
+      assert Enum.at(memory, 3000) == 1
+    end
   end
 
   test "registers are updated after set instructions" do
@@ -154,6 +156,11 @@ defmodule SynacorTest do
 
       assert stack == []
       assert Enum.at(memory, @reg0) == 42
+    end
+
+    test "call writes next pc to the top of stack" do
+      program = [lookup_opcode(:call), 1000]
+      assert %{pc: 1000, stack: [2]} = run_program(program)
     end
   end
 

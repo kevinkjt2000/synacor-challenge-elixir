@@ -75,6 +75,11 @@ defmodule Synacor do
     instr = memory |> Enum.at(pc) |> lookup_instr()
 
     case instr do
+      :call ->
+        a = get_mem_or_reg(memory, pc + 1)
+        updated_stack = [pc + 2 | stack]
+        %{state | :pc => a, :stack => updated_stack}
+
       :eq ->
         a = get_mem_or_reg(memory, pc + 1)
         b = get_mem_or_reg(memory, pc + 2)
