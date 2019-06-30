@@ -181,6 +181,12 @@ defmodule Synacor do
         val = get_mem_or_reg(memory, pc + 2)
         updated_memory = List.replace_at(memory, address, val)
         %{state | :pc => pc + 3, :memory => updated_memory}
+
+      :wmem ->
+        address = Enum.at(memory, pc + 1)
+        val = get_mem_or_reg(memory, pc + 2)
+        updated_memory = List.replace_at(memory, address, val)
+        %{state | :pc => pc + 3, :memory => updated_memory}
     end
     |> case do
       :halt ->

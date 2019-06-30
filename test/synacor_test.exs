@@ -79,19 +79,27 @@ defmodule SynacorTest do
     end
   end
 
-  test "registers are updated after set instructions" do
-    program = [
-      lookup_opcode(:set),
-      @reg0,
-      42,
-      lookup_opcode(:set),
-      @reg1,
-      800
-    ]
+  describe "memory manipulations" do
+    test "registers are updated after set instructions" do
+      program = [
+        lookup_opcode(:set),
+        @reg0,
+        42,
+        lookup_opcode(:set),
+        @reg1,
+        800
+      ]
 
-    assert %{memory: memory} = run_program(program)
-    assert Enum.at(memory, @reg0) == 42
-    assert Enum.at(memory, @reg1) == 800
+      assert %{memory: memory} = run_program(program)
+      assert Enum.at(memory, @reg0) == 42
+      assert Enum.at(memory, @reg1) == 800
+    end
+
+    test "wmem writes to memory" do
+      program = [lookup_opcode(:wmem), 1000, 42]
+      assert %{memory: memory} = run_program(program)
+      assert Enum.at(memory, 1000) == 42
+    end
   end
 
   describe "jumps" do
