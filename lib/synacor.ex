@@ -169,6 +169,14 @@ defmodule Synacor do
 
         %{state | :pc => updated_pc}
 
+      :mod ->
+        a = Enum.at(memory, pc + 1)
+        <<b::15>> = <<get_mem_or_reg(memory, pc + 2)::15>>
+        <<c::15>> = <<get_mem_or_reg(memory, pc + 3)::15>>
+        sum = rem(rem(b, c), 32768)
+        updated_memory = List.replace_at(memory, a, sum)
+        %{state | :pc => pc + 4, memory: updated_memory}
+
       :mult ->
         a = Enum.at(memory, pc + 1)
         <<b::15>> = <<get_mem_or_reg(memory, pc + 2)::15>>

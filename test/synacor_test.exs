@@ -38,6 +38,12 @@ defmodule SynacorTest do
       assert %{memory: memory} = run_program(program)
       assert Enum.at(memory, @reg0) == 21568
     end
+
+    test "3003 mod 3000 is 3" do
+      program = [lookup_opcode(:mod), @reg0, 3003, 3000]
+      assert %{memory: memory} = run_program(program)
+      assert Enum.at(memory, @reg0) == 3
+    end
   end
 
   describe "bit math" do
