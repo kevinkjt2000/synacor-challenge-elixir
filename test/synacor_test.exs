@@ -5,6 +5,13 @@ defmodule SynacorTest do
   doctest Synacor
   import Synacor
 
+  test "registers are updated after set instructions" do
+    program = [lookup_opcode(:set), 0, 42, lookup_opcode(:set), 1, 800, lookup_opcode(:halt)]
+    assert {_memory, _pc, _stack, registers} = run_program(program)
+    assert registers[0] == 42
+    assert registers[1] == 800
+  end
+
   test "can output characters to the screen" do
     assert capture_io(fn ->
              run_program([lookup_opcode(:out), ?h, lookup_opcode(:halt)])

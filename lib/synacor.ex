@@ -73,6 +73,12 @@ defmodule Synacor do
       :push ->
         val = memory |> Enum.at(pc + 1)
         {memory, pc + 2, [val | stack], registers}
+
+      :set ->
+        register = memory |> Enum.at(pc + 1)
+        val = memory |> Enum.at(pc + 2)
+        new_registers = Map.update!(registers, register, fn _ -> val end)
+        {memory, pc + 3, stack, new_registers}
     end
     |> case do
       :halt ->
