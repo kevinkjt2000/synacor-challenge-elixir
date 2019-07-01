@@ -227,7 +227,7 @@ defmodule Synacor do
 
       :rmem ->
         a = Enum.at(memory, pc + 1)
-        b = Enum.at(memory, Enum.at(memory, pc + 2))
+        b = Enum.at(memory, get_mem_or_reg(memory, pc + 2))
         updated_memory = List.replace_at(memory, a, b)
         %{state | :pc => pc + 3, :memory => updated_memory}
 
