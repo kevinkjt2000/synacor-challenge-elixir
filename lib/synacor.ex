@@ -44,6 +44,11 @@ defmodule Synacor do
     file
     |> IO.binread(:all)
     |> :binary.bin_to_list()
+    |> Enum.chunk_every(2)
+    |> Enum.map(fn [a, b] ->
+      <<word::16>> = <<b::8, a::8>>
+      word
+    end)
   end
 
   def run_program(program, io \\ IO) do
