@@ -116,7 +116,7 @@ defmodule Synacor do
         %{state | :pc => pc + 4, :memory => updated_memory}
 
       :gt ->
-        a = get_mem_or_reg(memory, pc + 1)
+        a = Enum.at(memory, pc + 1)
         b = get_mem_or_reg(memory, pc + 2)
         c = get_mem_or_reg(memory, pc + 3)
 
