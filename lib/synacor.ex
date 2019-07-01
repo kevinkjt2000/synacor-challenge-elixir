@@ -47,14 +47,9 @@ defmodule Synacor do
   end
 
   def run_program(program, io \\ IO) do
-    zeroed_memory = List.duplicate(0, :math.pow(2, 16) |> trunc())
+    padding_length = trunc(:math.pow(2, 16)) - Enum.count(program)
 
-    initial_memory =
-      program
-      |> Enum.with_index()
-      |> List.foldl(zeroed_memory, fn {word, index}, memory_acc ->
-        List.replace_at(memory_acc, index, word)
-      end)
+    initial_memory = program ++ List.duplicate(0, padding_length)
 
     runner(
       %{
