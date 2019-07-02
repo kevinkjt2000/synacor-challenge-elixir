@@ -1,0 +1,16 @@
+take tablet
+go doorway
+go north
+go north
+go bridge
+go continue
+go down
+go east
+take empty lantern
+go west
+go west
+go passage
+go ladder
+go west
+go south
+go north
