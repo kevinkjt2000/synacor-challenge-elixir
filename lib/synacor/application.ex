@@ -9,7 +9,6 @@ defmodule Synacor.Application do
     # List all child processes to be supervised
     children = [
       # Starts a worker by calling: Synacor.Worker.start_link(arg)
-      Synacor.Worker
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
