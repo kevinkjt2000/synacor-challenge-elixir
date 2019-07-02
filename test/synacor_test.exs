@@ -31,7 +31,7 @@ defmodule SynacorTest do
 
     assert capture_io(fn ->
              assert %{memory: memory} = run_program(program)
-             assert Enum.at(memory, @reg0) == 4
+             assert Synacor.get_mem(memory, @reg0) == 4
            end) == <<4>>
   end
 
@@ -39,19 +39,19 @@ defmodule SynacorTest do
     test "32758 + 15 is 5" do
       program = [lookup_opcode(:add), @reg0, 32758, 15]
       assert %{memory: memory} = run_program(program)
-      assert Enum.at(memory, @reg0) == 5
+      assert Synacor.get_mem(memory, @reg0) == 5
     end
 
     test "3000 * 3000 is 21568" do
       program = [lookup_opcode(:mult), @reg0, 3000, 3000]
       assert %{memory: memory} = run_program(program)
-      assert Enum.at(memory, @reg0) == 21568
+      assert Synacor.get_mem(memory, @reg0) == 21568
     end
 
     test "3003 mod 3000 is 3" do
       program = [lookup_opcode(:mod), @reg0, 3003, 3000]
       assert %{memory: memory} = run_program(program)
-      assert Enum.at(memory, @reg0) == 3
+      assert Synacor.get_mem(memory, @reg0) == 3
     end
   end
 
@@ -59,19 +59,19 @@ defmodule SynacorTest do
     test "not 000000000000100 is 111111111111011" do
       program = [lookup_opcode(:not), @reg0, 0b100]
       assert %{memory: memory} = run_program(program)
-      assert Enum.at(memory, @reg0) == 0b111111111111011
+      assert Synacor.get_mem(memory, @reg0) == 0b111111111111011
     end
 
     test "1010 or 1100 is 1110" do
       program = [lookup_opcode(:or), @reg0, 0b1010, 0b1100]
       assert %{memory: memory} = run_program(program)
-      assert Enum.at(memory, @reg0) == 0b1110
+      assert Synacor.get_mem(memory, @reg0) == 0b1110
     end
 
     test "1010 and 1100 is 1000" do
       program = [lookup_opcode(:and), @reg0, 0b1010, 0b1100]
       assert %{memory: memory} = run_program(program)
-      assert Enum.at(memory, @reg0) == 0b1000
+      assert Synacor.get_mem(memory, @reg0) == 0b1000
     end
   end
 
@@ -95,8 +95,8 @@ defmodule SynacorTest do
       ]
 
       assert %{memory: memory} = run_program(program)
-      assert Enum.at(memory, 1000) == 0
-      assert Enum.at(memory, 2000) == 1
+      assert Synacor.get_mem(memory, 1000) == 0
+      assert Synacor.get_mem(memory, 2000) == 1
     end
 
     test "numbers are gt comparable" do
@@ -122,9 +122,9 @@ defmodule SynacorTest do
       ]
 
       assert %{memory: memory} = run_program(program)
-      assert Enum.at(memory, 1000) == 0
-      assert Enum.at(memory, 2000) == 0
-      assert Enum.at(memory, 3000) == 1
+      assert Synacor.get_mem(memory, 1000) == 0
+      assert Synacor.get_mem(memory, 2000) == 0
+      assert Synacor.get_mem(memory, 3000) == 1
     end
   end
 
@@ -140,15 +140,15 @@ defmodule SynacorTest do
       ]
 
       assert %{memory: memory} = run_program(program)
-      assert Enum.at(memory, @reg0) == 42
-      assert Enum.at(memory, @reg1) == 800
+      assert Synacor.get_mem(memory, @reg0) == 42
+      assert Synacor.get_mem(memory, @reg1) == 800
     end
 
     test "wmem/rmem memory" do
       program = [lookup_opcode(:wmem), 1000, 42, lookup_opcode(:rmem), @reg0, 1000]
       assert %{memory: memory} = run_program(program)
-      assert Enum.at(memory, 1000) == 42
-      assert Enum.at(memory, @reg0) == 42
+      assert Synacor.get_mem(memory, 1000) == 42
+      assert Synacor.get_mem(memory, @reg0) == 42
     end
   end
 
@@ -182,7 +182,7 @@ defmodule SynacorTest do
       ]
 
       assert %{memory: memory} = run_program(program, MockIO)
-      assert Enum.at(memory, 1000) == ?m
+      assert Synacor.get_mem(memory, 1000) == ?m
     end
 
     test "can output characters to the screen" do
@@ -213,7 +213,7 @@ defmodule SynacorTest do
       assert %{memory: memory, stack: stack} = run_program(program)
 
       assert stack == []
-      assert Enum.at(memory, @reg0) == 42
+      assert Synacor.get_mem(memory, @reg0) == 42
     end
 
     test "call writes next pc to the top of stack" do
@@ -225,12 +225,15 @@ defmodule SynacorTest do
   describe "idle programs" do
     test "noop does nothing" do
       program = [lookup_opcode(:noop), lookup_opcode(:noop)]
-      assert %{pc: pc} = run_program(program)
-      assert pc == 2
+      assert %{pc: 2} = run_program(program)
     end
 
     test "empty program halts immediately" do
       assert %{} = run_program([])
+    end
+
+    test "halt works" do
+      assert %{pc: 0} = run_program([lookup_opcode(:halt)])
     end
   end
 end

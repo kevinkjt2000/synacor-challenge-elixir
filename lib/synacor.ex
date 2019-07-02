@@ -26,7 +26,7 @@ defmodule Synacor do
     noop: 21
   }
   def lookup_opcode(instr) do
-    @instructions[instr]
+    Map.get(@instructions, instr)
   end
 
   def lookup_instr(opcode) do
@@ -52,9 +52,7 @@ defmodule Synacor do
   end
 
   def run_program(program, io \\ IO) do
-    padding_length = trunc(:math.pow(2, 16)) - Enum.count(program)
-
-    initial_memory = program ++ List.duplicate(0, padding_length)
+    initial_memory = program |> Enum.with_index() |> Map.new(fn {val, key} -> {key, val} end)
 
     runner(
       %{
@@ -252,12 +250,12 @@ defmodule Synacor do
     end
   end
 
-  defp write_mem(memory, address, val) do
-    List.replace_at(memory, address, val)
+  def write_mem(memory, address, val) do
+    Map.put(memory, address, val)
   end
 
-  defp get_mem(memory, address) do
-    Enum.at(memory, address)
+  def get_mem(memory, address) do
+    Map.get(memory, address, 0)
   end
 
   defp get_mem_or_reg(memory, address) do
