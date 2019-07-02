@@ -74,23 +74,23 @@ defmodule Synacor do
          } = state,
          io
        ) do
-    instr = memory |> Enum.at(pc) |> lookup_instr()
+    instr = get_mem(memory, pc) |> lookup_instr()
 
     case instr do
       :add ->
-        a = Enum.at(memory, pc + 1)
+        a = get_mem(memory, pc + 1)
         <<b::15>> = <<get_mem_or_reg(memory, pc + 2)::15>>
         <<c::15>> = <<get_mem_or_reg(memory, pc + 3)::15>>
         sum = rem(b + c, 32768)
-        updated_memory = List.replace_at(memory, a, sum)
+        updated_memory = write_mem(memory, a, sum)
         %{state | :pc => pc + 4, memory: updated_memory}
 
       :and ->
-        a = Enum.at(memory, pc + 1)
+        a = get_mem(memory, pc + 1)
         b = get_mem_or_reg(memory, pc + 2)
         c = get_mem_or_reg(memory, pc + 3)
         <<b_or_c::15>> = <<Bitwise.band(b, c)::15>>
-        updated_memory = List.replace_at(memory, a, b_or_c)
+        updated_memory = write_mem(memory, a, b_or_c)
         %{state | :pc => pc + 4, memory: updated_memory}
 
       :call ->
@@ -99,12 +99,12 @@ defmodule Synacor do
         %{state | :pc => a, :stack => updated_stack}
 
       :eq ->
-        a = Enum.at(memory, pc + 1)
+        a = get_mem(memory, pc + 1)
         b = get_mem_or_reg(memory, pc + 2)
         c = get_mem_or_reg(memory, pc + 3)
 
         updated_memory =
-          List.replace_at(
+          write_mem(
             memory,
             a,
             case b == c do
@@ -116,12 +116,12 @@ defmodule Synacor do
         %{state | :pc => pc + 4, :memory => updated_memory}
 
       :gt ->
-        a = Enum.at(memory, pc + 1)
+        a = get_mem(memory, pc + 1)
         b = get_mem_or_reg(memory, pc + 2)
         c = get_mem_or_reg(memory, pc + 3)
 
         updated_memory =
-          List.replace_at(
+          write_mem(
             memory,
             a,
             case b > c do
@@ -137,8 +137,8 @@ defmodule Synacor do
 
       :in ->
         char = io.gets("") |> String.to_charlist() |> Enum.at(0)
-        a = Enum.at(memory, pc + 1)
-        updated_memory = List.replace_at(memory, a, char)
+        a = get_mem(memory, pc + 1)
+        updated_memory = write_mem(memory, a, char)
         %{state | :pc => pc + 2, :memory => updated_memory}
 
       :jf ->
@@ -170,37 +170,37 @@ defmodule Synacor do
         %{state | :pc => updated_pc}
 
       :mod ->
-        a = Enum.at(memory, pc + 1)
+        a = get_mem(memory, pc + 1)
         <<b::15>> = <<get_mem_or_reg(memory, pc + 2)::15>>
         <<c::15>> = <<get_mem_or_reg(memory, pc + 3)::15>>
         sum = rem(rem(b, c), 32768)
-        updated_memory = List.replace_at(memory, a, sum)
+        updated_memory = write_mem(memory, a, sum)
         %{state | :pc => pc + 4, memory: updated_memory}
 
       :mult ->
-        a = Enum.at(memory, pc + 1)
+        a = get_mem(memory, pc + 1)
         <<b::15>> = <<get_mem_or_reg(memory, pc + 2)::15>>
         <<c::15>> = <<get_mem_or_reg(memory, pc + 3)::15>>
         sum = rem(b * c, 32768)
-        updated_memory = List.replace_at(memory, a, sum)
+        updated_memory = write_mem(memory, a, sum)
         %{state | :pc => pc + 4, memory: updated_memory}
 
       :noop ->
         %{state | :pc => pc + 1}
 
       :not ->
-        a = Enum.at(memory, pc + 1)
+        a = get_mem(memory, pc + 1)
         b = get_mem_or_reg(memory, pc + 2)
         <<not_b::15>> = <<Bitwise.bnot(b)::15>>
-        updated_memory = List.replace_at(memory, a, not_b)
+        updated_memory = write_mem(memory, a, not_b)
         %{state | :pc => pc + 3, memory: updated_memory}
 
       :or ->
-        a = Enum.at(memory, pc + 1)
+        a = get_mem(memory, pc + 1)
         b = get_mem_or_reg(memory, pc + 2)
         c = get_mem_or_reg(memory, pc + 3)
         <<b_or_c::15>> = <<Bitwise.bor(b, c)::15>>
-        updated_memory = List.replace_at(memory, a, b_or_c)
+        updated_memory = write_mem(memory, a, b_or_c)
         %{state | :pc => pc + 4, memory: updated_memory}
 
       :out ->
@@ -210,9 +210,9 @@ defmodule Synacor do
         %{state | :pc => pc + 2}
 
       :pop ->
-        address = Enum.at(memory, pc + 1)
+        address = get_mem(memory, pc + 1)
         [val | popped_stack] = stack
-        updated_memory = List.replace_at(memory, address, val)
+        updated_memory = write_mem(memory, address, val)
         %{state | :pc => pc + 2, :stack => popped_stack, :memory => updated_memory}
 
       :push ->
@@ -226,21 +226,21 @@ defmodule Synacor do
         end
 
       :rmem ->
-        a = Enum.at(memory, pc + 1)
-        b = Enum.at(memory, get_mem_or_reg(memory, pc + 2))
-        updated_memory = List.replace_at(memory, a, b)
+        a = get_mem(memory, pc + 1)
+        b = get_mem(memory, get_mem_or_reg(memory, pc + 2))
+        updated_memory = write_mem(memory, a, b)
         %{state | :pc => pc + 3, :memory => updated_memory}
 
       :set ->
-        address = Enum.at(memory, pc + 1)
+        address = get_mem(memory, pc + 1)
         val = get_mem_or_reg(memory, pc + 2)
-        updated_memory = List.replace_at(memory, address, val)
+        updated_memory = write_mem(memory, address, val)
         %{state | :pc => pc + 3, :memory => updated_memory}
 
       :wmem ->
         a = get_mem_or_reg(memory, pc + 1)
         b = get_mem_or_reg(memory, pc + 2)
-        updated_memory = List.replace_at(memory, a, b)
+        updated_memory = write_mem(memory, a, b)
         %{state | :pc => pc + 3, :memory => updated_memory}
     end
     |> case do
@@ -252,10 +252,18 @@ defmodule Synacor do
     end
   end
 
-  defp get_mem_or_reg(memory, address) do
+  defp write_mem(memory, address, val) do
+    List.replace_at(memory, address, val)
+  end
+
+  defp get_mem(memory, address) do
     Enum.at(memory, address)
+  end
+
+  defp get_mem_or_reg(memory, address) do
+    get_mem(memory, address)
     |> case do
-      val when val > 32767 -> Enum.at(memory, val)
+      val when val > 32767 -> get_mem(memory, val)
       val -> val
     end
   end
