@@ -136,7 +136,7 @@ defmodule Synacor do
         :halt
 
       :in ->
-        char = io.gets("") |> String.to_charlist() |> Enum.at(0)
+        <<char>> = io.getn("", 1)
         a = get_mem(memory, pc + 1)
         updated_memory = write_mem(memory, a, char)
         %{state | :pc => pc + 2, :memory => updated_memory}

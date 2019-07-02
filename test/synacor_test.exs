@@ -1,6 +1,6 @@
 defmodule MockIO do
-  def gets(_prompt) do
-    "m\n"
+  def getn(_prompt, _count) do
+    "m"
   end
 
   def write(mesg) do
