@@ -54,23 +54,23 @@ defmodule Synacor do
   def run_program(program, io \\ IO) do
     initial_memory = program |> Enum.with_index() |> Map.new(fn {val, key} -> {key, val} end)
 
-    runner(
-      %{
-        memory: initial_memory,
-        pc: 0,
-        stack: []
-      },
-      io
-    )
+    initial_state = %{
+      memory: initial_memory,
+      pc: 0,
+      stack: [],
+      io: io
+    }
+
+    runner(initial_state)
   end
 
   defp runner(
          %{
            memory: memory,
            pc: pc,
-           stack: stack
-         } = state,
-         io
+           stack: stack,
+           io: io
+         } = state
        ) do
     instr = get_mem(memory, pc) |> lookup_instr()
 
@@ -246,7 +246,7 @@ defmodule Synacor do
         state
 
       new_state ->
-        runner(new_state, io)
+        runner(new_state)
     end
   end
 
