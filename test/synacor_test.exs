@@ -1,6 +1,6 @@
 defmodule MockIO do
-  def getn(_prompt, _count) do
-    "m"
+  def gets(_prompt) do
+    "my\n"
   end
 
   def write(mesg) do
@@ -178,11 +178,17 @@ defmodule SynacorTest do
     test "in instruction can read from user" do
       program = [
         lookup_opcode(:in),
-        1000
+        1000,
+        lookup_opcode(:in),
+        1001,
+        lookup_opcode(:in),
+        1002
       ]
 
       assert %{memory: memory} = run_program(program, MockIO)
       assert Synacor.get_mem(memory, 1000) == ?m
+      assert Synacor.get_mem(memory, 1001) == ?y
+      assert Synacor.get_mem(memory, 1002) == ?\n
     end
 
     test "can output characters to the screen" do

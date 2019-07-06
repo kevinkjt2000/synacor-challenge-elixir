@@ -55,11 +55,12 @@ defmodule Synacor do
     initial_memory = program |> Enum.with_index() |> Map.new(fn {val, key} -> {key, val} end)
 
     initial_state = %{
+      input_buffer: [],
+      io: io,
       memory: initial_memory,
       pc: 0,
-      stack: [],
-      io: io,
-      running: true
+      running: true,
+      stack: []
     }
 
     Stream.iterate(initial_state, &runner/1)
@@ -69,11 +70,12 @@ defmodule Synacor do
 
   defp runner(
          %{
+           input_buffer: input_buffer,
+           io: io,
            memory: memory,
            pc: pc,
-           stack: stack,
            running: _running,
-           io: io
+           stack: stack
          } = state
        ) do
     instr = get_mem(memory, pc) |> lookup_instr()
@@ -138,10 +140,15 @@ defmodule Synacor do
         %{state | :running => false}
 
       :in ->
-        <<char>> = io.getn("", 1)
+        [char | leftover] =
+          case input_buffer do
+            [] -> io.gets("") |> String.to_charlist()
+            _ -> input_buffer
+          end
+
         a = get_mem(memory, pc + 1)
         updated_memory = write_mem(memory, a, char)
-        %{state | :pc => pc + 2, :memory => updated_memory}
+        %{state | :pc => pc + 2, :memory => updated_memory, :input_buffer => leftover}
 
       :jf ->
         a = get_mem_or_reg(memory, pc + 1)
