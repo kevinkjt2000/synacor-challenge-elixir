@@ -223,13 +223,15 @@ defmodule SynacorTest do
   end
 
   describe "idle programs" do
+    @describetag :idle
+
     test "noop does nothing" do
       program = [lookup_opcode(:noop), lookup_opcode(:noop)]
       assert %{pc: 2} = run_program(program)
     end
 
     test "empty program halts immediately" do
-      assert %{} = run_program([])
+      assert %{pc: 0} = run_program([])
     end
 
     test "halt works" do

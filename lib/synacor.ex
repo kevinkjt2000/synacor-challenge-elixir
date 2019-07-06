@@ -58,10 +58,13 @@ defmodule Synacor do
       memory: initial_memory,
       pc: 0,
       stack: [],
-      io: io
+      io: io,
+      running: true
     }
 
-    runner(initial_state)
+    Stream.iterate(initial_state, &runner/1)
+    |> Stream.drop_while(fn %{running: running} -> running end)
+    |> Enum.at(0)
   end
 
   defp runner(
@@ -69,6 +72,7 @@ defmodule Synacor do
            memory: memory,
            pc: pc,
            stack: stack,
+           running: _running,
            io: io
          } = state
        ) do
@@ -131,7 +135,7 @@ defmodule Synacor do
         %{state | :pc => pc + 4, :memory => updated_memory}
 
       :halt ->
-        :halt
+        %{state | :running => false}
 
       :in ->
         <<char>> = io.getn("", 1)
@@ -219,7 +223,7 @@ defmodule Synacor do
 
       :ret ->
         case stack do
-          [] -> :halt
+          [] -> %{state | :running => false}
           [val | popped_stack] -> %{state | :pc => val, :stack => popped_stack}
         end
 
@@ -240,13 +244,6 @@ defmodule Synacor do
         b = get_mem_or_reg(memory, pc + 2)
         updated_memory = write_mem(memory, a, b)
         %{state | :pc => pc + 3, :memory => updated_memory}
-    end
-    |> case do
-      :halt ->
-        state
-
-      new_state ->
-        runner(new_state)
     end
   end
 
