@@ -140,15 +140,25 @@ defmodule Synacor do
         %{state | :running => false}
 
       :in ->
-        [char | leftover] =
+        input =
           case input_buffer do
-            [] -> io.gets("") |> String.to_charlist()
-            _ -> input_buffer
+            [] ->
+              io.gets("") |> String.to_charlist()
+
+            _ ->
+              input_buffer
           end
 
-        a = get_mem(memory, pc + 1)
-        updated_memory = write_mem(memory, a, char)
-        %{state | :pc => pc + 2, :memory => updated_memory, :input_buffer => leftover}
+        case input do
+          'set reg8 42\n' ->
+            updated_memory = write_mem(memory, 32775, 42)
+            %{state | :memory => updated_memory, :input_buffer => []}
+
+          [char | leftover] ->
+            a = get_mem(memory, pc + 1)
+            updated_memory = write_mem(memory, a, char)
+            %{state | :pc => pc + 2, :memory => updated_memory, :input_buffer => leftover}
+        end
 
       :jf ->
         a = get_mem_or_reg(memory, pc + 1)

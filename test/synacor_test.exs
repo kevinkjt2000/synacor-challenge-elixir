@@ -8,6 +8,24 @@ defmodule MockIO do
   end
 end
 
+defmodule CheatIO do
+  def start_link do
+    Agent.start_link(fn -> 1 end, name: __MODULE__)
+  end
+
+  def gets(_prompt) do
+    times_called =
+      Agent.get_and_update(__MODULE__, fn state ->
+        {state, state + 1}
+      end)
+
+    case times_called do
+      1 -> "set reg8 42\n"
+      2 -> "m\n"
+    end
+  end
+end
+
 defmodule SynacorTest do
   use ExUnit.Case
   import ExUnit.CaptureIO
@@ -24,7 +42,7 @@ defmodule SynacorTest do
   # @reg4 32772
   # @reg5 32773
   # @reg6 32774
-  # @reg7 32775
+  @reg7 32775
 
   test "example from hints section of the instructions" do
     program = [9, 32768, 32769, 4, 19, 32768]
@@ -175,6 +193,14 @@ defmodule SynacorTest do
   end
 
   describe "i/o" do
+    test "cheat codes are allowed" do
+      CheatIO.start_link()
+      program = [lookup_opcode(:in), 1000]
+      assert %{memory: memory} = run_program(program, CheatIO)
+      assert Synacor.get_mem(memory, @reg7) == 42
+      assert Synacor.get_mem(memory, 1000) == ?m
+    end
+
     test "in instruction can read from user" do
       program = [
         lookup_opcode(:in),
