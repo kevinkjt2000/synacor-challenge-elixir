@@ -52,12 +52,16 @@ defmodule Synacor do
   end
 
   def run_program(program, io \\ IO) do
-    initial_memory = program |> Enum.with_index() |> Map.new(fn {val, key} -> {key, val} end)
+    memory = :ets.new(:program_memory, [:set, :protected])
+
+    program
+    |> Enum.with_index()
+    |> Enum.map(fn {val, key} -> :ets.insert(memory, {key, val}) end)
 
     initial_state = %{
       input_buffer: [],
       io: io,
-      memory: initial_memory,
+      memory: memory,
       pc: 0,
       running: true,
       stack: []
@@ -86,16 +90,16 @@ defmodule Synacor do
         <<b::15>> = <<get_mem_or_reg(memory, pc + 2)::15>>
         <<c::15>> = <<get_mem_or_reg(memory, pc + 3)::15>>
         sum = rem(b + c, 32768)
-        updated_memory = write_mem(memory, a, sum)
-        %{state | :pc => pc + 4, memory: updated_memory}
+        write_mem(memory, a, sum)
+        %{state | :pc => pc + 4}
 
       :and ->
         a = get_mem(memory, pc + 1)
         b = get_mem_or_reg(memory, pc + 2)
         c = get_mem_or_reg(memory, pc + 3)
         <<b_or_c::15>> = <<Bitwise.band(b, c)::15>>
-        updated_memory = write_mem(memory, a, b_or_c)
-        %{state | :pc => pc + 4, memory: updated_memory}
+        write_mem(memory, a, b_or_c)
+        %{state | :pc => pc + 4}
 
       :call ->
         a = get_mem_or_reg(memory, pc + 1)
@@ -107,34 +111,32 @@ defmodule Synacor do
         b = get_mem_or_reg(memory, pc + 2)
         c = get_mem_or_reg(memory, pc + 3)
 
-        updated_memory =
-          write_mem(
-            memory,
-            a,
-            case b == c do
-              true -> 1
-              false -> 0
-            end
-          )
+        write_mem(
+          memory,
+          a,
+          case b == c do
+            true -> 1
+            false -> 0
+          end
+        )
 
-        %{state | :pc => pc + 4, :memory => updated_memory}
+        %{state | :pc => pc + 4}
 
       :gt ->
         a = get_mem(memory, pc + 1)
         b = get_mem_or_reg(memory, pc + 2)
         c = get_mem_or_reg(memory, pc + 3)
 
-        updated_memory =
-          write_mem(
-            memory,
-            a,
-            case b > c do
-              true -> 1
-              false -> 0
-            end
-          )
+        write_mem(
+          memory,
+          a,
+          case b > c do
+            true -> 1
+            false -> 0
+          end
+        )
 
-        %{state | :pc => pc + 4, :memory => updated_memory}
+        %{state | :pc => pc + 4}
 
       :halt ->
         %{state | :running => false}
@@ -151,13 +153,13 @@ defmodule Synacor do
 
         case input do
           'set reg8 42\n' ->
-            updated_memory = write_mem(memory, 32775, 42)
-            %{state | :memory => updated_memory, :input_buffer => []}
+            write_mem(memory, 32775, 42)
+            %{state | :input_buffer => []}
 
           [char | leftover] ->
             a = get_mem(memory, pc + 1)
-            updated_memory = write_mem(memory, a, char)
-            %{state | :pc => pc + 2, :memory => updated_memory, :input_buffer => leftover}
+            write_mem(memory, a, char)
+            %{state | :pc => pc + 2, :input_buffer => leftover}
         end
 
       :jf ->
@@ -193,16 +195,16 @@ defmodule Synacor do
         <<b::15>> = <<get_mem_or_reg(memory, pc + 2)::15>>
         <<c::15>> = <<get_mem_or_reg(memory, pc + 3)::15>>
         sum = rem(rem(b, c), 32768)
-        updated_memory = write_mem(memory, a, sum)
-        %{state | :pc => pc + 4, memory: updated_memory}
+        write_mem(memory, a, sum)
+        %{state | :pc => pc + 4}
 
       :mult ->
         a = get_mem(memory, pc + 1)
         <<b::15>> = <<get_mem_or_reg(memory, pc + 2)::15>>
         <<c::15>> = <<get_mem_or_reg(memory, pc + 3)::15>>
         sum = rem(b * c, 32768)
-        updated_memory = write_mem(memory, a, sum)
-        %{state | :pc => pc + 4, memory: updated_memory}
+        write_mem(memory, a, sum)
+        %{state | :pc => pc + 4}
 
       :noop ->
         %{state | :pc => pc + 1}
@@ -211,16 +213,16 @@ defmodule Synacor do
         a = get_mem(memory, pc + 1)
         b = get_mem_or_reg(memory, pc + 2)
         <<not_b::15>> = <<Bitwise.bnot(b)::15>>
-        updated_memory = write_mem(memory, a, not_b)
-        %{state | :pc => pc + 3, memory: updated_memory}
+        write_mem(memory, a, not_b)
+        %{state | :pc => pc + 3}
 
       :or ->
         a = get_mem(memory, pc + 1)
         b = get_mem_or_reg(memory, pc + 2)
         c = get_mem_or_reg(memory, pc + 3)
         <<b_or_c::15>> = <<Bitwise.bor(b, c)::15>>
-        updated_memory = write_mem(memory, a, b_or_c)
-        %{state | :pc => pc + 4, memory: updated_memory}
+        write_mem(memory, a, b_or_c)
+        %{state | :pc => pc + 4}
 
       :out ->
         c = get_mem_or_reg(memory, pc + 1)
@@ -231,8 +233,8 @@ defmodule Synacor do
       :pop ->
         address = get_mem(memory, pc + 1)
         [val | popped_stack] = stack
-        updated_memory = write_mem(memory, address, val)
-        %{state | :pc => pc + 2, :stack => popped_stack, :memory => updated_memory}
+        write_mem(memory, address, val)
+        %{state | :pc => pc + 2, :stack => popped_stack}
 
       :push ->
         val = get_mem_or_reg(memory, pc + 1)
@@ -247,29 +249,32 @@ defmodule Synacor do
       :rmem ->
         a = get_mem(memory, pc + 1)
         b = get_mem(memory, get_mem_or_reg(memory, pc + 2))
-        updated_memory = write_mem(memory, a, b)
-        %{state | :pc => pc + 3, :memory => updated_memory}
+        write_mem(memory, a, b)
+        %{state | :pc => pc + 3}
 
       :set ->
         address = get_mem(memory, pc + 1)
         val = get_mem_or_reg(memory, pc + 2)
-        updated_memory = write_mem(memory, address, val)
-        %{state | :pc => pc + 3, :memory => updated_memory}
+        write_mem(memory, address, val)
+        %{state | :pc => pc + 3}
 
       :wmem ->
         a = get_mem_or_reg(memory, pc + 1)
         b = get_mem_or_reg(memory, pc + 2)
-        updated_memory = write_mem(memory, a, b)
-        %{state | :pc => pc + 3, :memory => updated_memory}
+        write_mem(memory, a, b)
+        %{state | :pc => pc + 3}
     end
   end
 
   def write_mem(memory, address, val) do
-    Map.put(memory, address, val)
+    :ets.insert(memory, {address, val})
   end
 
   def get_mem(memory, address) do
-    Map.get(memory, address, 0)
+    case :ets.lookup(memory, address) do
+      [{address, val}] -> val
+      _ -> 0
+    end
   end
 
   defp get_mem_or_reg(memory, address) do
