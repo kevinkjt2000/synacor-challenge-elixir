@@ -272,7 +272,7 @@ defmodule Synacor do
 
   def get_mem(memory, address) do
     case :ets.lookup(memory, address) do
-      [{address, val}] -> val
+      [{^address, val}] -> val
       _ -> 0
     end
   end
